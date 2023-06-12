@@ -12,7 +12,7 @@
 <body>
   @yield('content')  
 
-  <footer class="container-fluid bg-dark text-white">
+  <footer class="container-fluid bg-dark text-white mt-5">
     <div class="container">
         <div class="row">
             <div class="col-12">
