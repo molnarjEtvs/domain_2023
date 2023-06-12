@@ -49,15 +49,24 @@
                         <th>Lejárat</th>
                         <th>Műveletek</th>
                     </tr>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
+                    @foreach ($domainek as $egyDomain)
+                        <tr>
+                            <td>#{{ $egyDomain->d_id }}</td>
+                            <td>{{ $egyDomain->domain_nev }}</td>
+                            <td>{{ $egyDomain->domain_nev_human }}</td>
+                            <td>{{ $egyDomain->rogzitesi_ido }}</td>
+                            <td>{{ $egyDomain->lejarati_ido }}</td>
+                            <td>
+                                Törlés
+                                Módosítást
+                                Hosszabítást
+                            </td>
+                        </tr>
+                    @endforeach
+                    
                 </table>
+
+                {{ $domainek->links() }}
             </div>
         </div>
     </div>
