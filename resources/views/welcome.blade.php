@@ -8,7 +8,7 @@
             <form method="GET" class="mt-3">
                 <div class="row">
                     <div class="col-1">
-                        <a href="" class="btn btn-success">+</a>
+                        <a href="{{route('domainRogzites')}}" class="btn btn-success">+</a>
                     </div>
 
                     <div class="col-4">
