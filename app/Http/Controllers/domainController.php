@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class domainController extends Controller
 {
@@ -42,7 +43,12 @@ class domainController extends Controller
     }
 
     public function domainForm(){
-        return view("domainform");
+        //$adatok = new Class();
+        $adatok['domain_nev'] = "";
+        $adatok['domain_nev_human'] = "";
+        $adatok['lejarati_ido'] = "";
+        
+        return view("domainform",["domainAdatok" => $adatok]);
     }
 
     public function domainRogzites(Request $req){
@@ -144,6 +150,43 @@ class domainController extends Controller
             $data['hosszabbitott_datum'] = $domainAdatok->lejarati_ido;
         }
         return response()->json($data);
+    }
+
+
+    public function domainModositas(Request $req){
+        $domainAdatok = DB::table('domainek')->where('d_id',$req->domainId)->first();
+        $domainAdatok = (array)$domainAdatok;
+        return view('domainform',['modositas' => 1,'domainAdatok' => $domainAdatok]);
+    }
+
+    public function domainModositasMentes(Request $req){
+        $req->validate( [
+            "domain_nev" => "required|min:3|max:30|unique:domainek,domain_nev",Rule::unique('domainek')->ignore($req->get('domainId')),
+            
+            //Formailag még ellenőrizni kell
+            "domain_nev_human" => "required|min:3|max:30|unique:domainek,domain_nev_human", //Formailag még ellenőrizni kell
+            "lejarati_ido" => "required|date_format:Y-m-d" 
+        ],
+        [
+            "domain_nev.required" => "A mező kitöltése kötelező!",
+            "domain_nev.min" => "Minimum 3 karaktert meg kell adnod",
+            "domain_nev.max" => "Maximum 30 karaktert lehet megadni",
+            "domain_nev.unique" => "Ez a domain név már rögzítésre került!",     
+
+            "domain_nev_human.required" => "A mező kitöltése kötelező!",
+            "domain_nev_human.min" => "Minimum 3 karaktert meg kell adnod",
+            "domain_nev_human.max" => "Maximum 30 karaktert lehet megadni",
+            "domain_nev_human.unique" => "Ez a domain név már rögzítésre került!",
+            
+            "lejarati_ido.required" => "A mező kitöltése kötelező!",
+            "lejarati_ido.date_format" => "Az alábbi formátumban kell megadnod: YYYY-mm-hh"      
+        ]);
+
+        $domain = trim($req->domain_nev);
+        $domain_human = trim($req->domain_nev_human);
+        $v = DB::update('UPDATE domainek SET domain_nev=?, domain_nev_human=?, lejarati_ido=? WHERE d_id=?',[$domain,$domain_human,$req->lejarati_ido,$req->domainId]);
+        return redirect(Route('domainModositas',$req->domainId))->with('modositva','Módosítás sikeres!');
+
     }
 
 }
