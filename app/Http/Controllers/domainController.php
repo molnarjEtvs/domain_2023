@@ -4,12 +4,41 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class domainController extends Controller
 {
-    public function listazas(){
-        $domainek = DB::table('domainek')->paginate(30);
-        return view("welcome",["domainek" => $domainek]);
+    public function listazas(Request $req){
+        $domain = "";
+        $aktiv = "";
+        $wheres = [];
+        if($req->get('aktiv') != ""){
+
+            $aktiv = $req->get('aktiv');
+
+            if($req->get('aktiv') == "lejart"){
+                $wheres[] = ['lejarati_ido','<',date('Y-m-d')];
+                
+            }
+            if($req->get('aktiv') == "aktiv"){
+                $wheres[] = ['lejarati_ido','>=',date('Y-m-d')];
+            } 
+        }
+
+        if($req->get('domain') != ""){
+            $domain = $req->get('domain');
+            $wheres[] = ['domain_nev','like','%'.$domain.'%'];
+        }
+        
+        if($req->get('domain') == "" && $req->get('aktiv') == ""){
+            $domainek = DB::table('domainek')->paginate(2);
+            $alap = 1;
+        }else{
+            $alap = 0;
+            $domainek = DB::table('domainek')->where($wheres)->paginate(30);
+        }
+        
+        return view("welcome",["domainek" => $domainek,"domain" => $domain,"aktiv" => $aktiv,"alap" => $alap]);
     }
 
     public function domainForm(){
@@ -46,4 +75,40 @@ class domainController extends Controller
 
 
     }
+
+
+    public function domainTorlesMegerosites(Request $req){
+        $data['modal-title'] = "Domain Törlés";
+        $data['modal-body'] = "Biztosan törölni szeretnéd a domain nevet?";
+        $data['modal-footer'] = '<button type="button" class="btn btn-dark" data-bs-dismiss="modal">Mégsem</button>';
+        $data['modal-footer'] .= '<button type="button" class="btn btn-danger" onclick="torlesDomain('.$req->domainId.');">Törlés</button>';
+        
+        return response()->json($data);
+        
+    }
+
+
+    public function domainTorles(Request $req){
+        $data['error'] = false;
+        $data['errorMsg'] = "";
+
+        $validalas = Validator::make($req->all(),
+            [
+                "domainId" => "required"
+            ],
+            [
+                "domainId.required" => "Hiányzó domain ID"
+            ]
+        );
+
+        if($validalas->fails()){
+            $data['error'] = true;
+            $data['errorMsg'] = $validalas->messages();
+        }else{
+            DB::delete("DELETE FROM domainek WHERE d_id=?",[$req->domainId]);
+        }
+
+        return response()->json($data);
+    }
+
 }
