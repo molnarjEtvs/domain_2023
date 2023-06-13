@@ -60,7 +60,7 @@
                             <td>{{ $egyDomain->domain_nev }}</td>
                             <td>{{ $egyDomain->domain_nev_human }}</td>
                             <td>{{ $egyDomain->rogzitesi_ido }}</td>
-                            <td>{{ $egyDomain->lejarati_ido }}</td>
+                            <td id='lejarati_ido_{{ $egyDomain->d_id }}'>{{ $egyDomain->lejarati_ido }}</td>
                             <td>
                                 <button class="btn btn-danger gombok" onclick="torlesMegerositese({{ $egyDomain->d_id }});"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
@@ -114,6 +114,55 @@
             }
         });
     }
+
+
+    function hosszabbitasMegerosites(domainId){
+        $.ajax({
+            url: 'domain-hosszabbitas-megerositese',
+            method: 'POST',
+            data:{"domainId":domainId},
+            beforeSend:function(){
+                //Amíg nem kapok választ
+                $(".gombok").attr("disabled",true);
+            },
+            success:function(data){
+                //Ha megvan a válasz
+                $(".gombok").attr("disabled",false);
+                $("#modal-title").html(data['modal-title']);
+                $("#modal-body").html(data['modal-body']);
+                $("#modal-footer").html(data['modal-footer']);
+                $('#myModal').modal('show');
+            },
+            headers:{
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+    }
+
+
+    function domainHosszabitas(domainId){
+        $.ajax({
+            url: 'domain-hosszabbitas',
+            method: 'POST',
+            data:{"domainId":domainId},
+            beforeSend:function(){
+                $('.gombok').attr('disabled',true);
+            },
+            success:function(data){
+                $('.gombok').attr('disabled',false);
+                if(data.error == false){
+                    $("#lejarati_ido_"+domainId).html(data['hosszabbitott_datum']);
+                    $('#myModal').modal('hide');
+                }else{
+                    alert('hiba történt!');
+                }
+            },
+            headers:{
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+    }
+
     function torlesDomain(domainId){
         $.ajax({
             url: 'domain-torles',

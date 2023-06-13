@@ -111,4 +111,39 @@ class domainController extends Controller
         return response()->json($data);
     }
 
+
+    public function hosszabbitasMegerosites(Request $req){
+        $data['modal-title'] = "Domain Hosszabbítás";
+        $data['modal-body'] = "Biztosan meg szeretnéd hosszabbítani a domain nevet?";
+        $data['modal-footer'] = '<button type="button" class="btn btn-dark" data-bs-dismiss="modal">Mégsem</button>';
+        $data['modal-footer'] .= '<button type="button" class="btn btn-danger" onclick="domainHosszabitas('.$req->domainId.');">Hosszabbítás</button>';
+        
+        return response()->json($data);
+    }
+
+
+    public function domainHosszabbitas(Request $req){
+        $data['error'] = false;
+        $data['errorMsg'] = "";
+
+        $validalas = Validator::make($req->all(),
+            [
+                "domainId" => "required"
+            ],
+            [
+                "domainId.required" => "Az id megadása kötelező!"
+            ]
+        );
+
+        if($validalas->fails()){
+            $data['error'] = true;
+            $data['errorMsg'] = $validalas->messages();
+        }else{
+            DB::update("UPDATE domainek SET lejarati_ido=DATE_ADD(lejarati_ido, INTERVAL 1 YEAR) WHERE d_id=?",[$req->domainId]);
+            $domainAdatok = DB::table('domainek')->where('d_id',$req->domainId)->first();
+            $data['hosszabbitott_datum'] = $domainAdatok->lejarati_ido;
+        }
+        return response()->json($data);
+    }
+
 }
